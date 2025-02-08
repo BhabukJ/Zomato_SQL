@@ -335,6 +335,43 @@ JOIN last_year_data AS l
 ON c.restaurant_id = l.restaurant_id;
 ```
 
+--What is the percentage of failed deliveries (where no delivery ID is assigned) for each restaurant, 
+--compared to the total number of orders placed at that restaurant?"
+```sql
+WITH grand_total AS (
+    SELECT 
+        restaurant_id, 
+        COUNT(order_id) AS total_orders
+    FROM 
+        orders 
+    GROUP BY 
+        restaurant_id
+),
+no_ETA AS (
+    SELECT   
+        restaurant_id, 
+        COUNT(CASE WHEN delivery_id IS NULL THEN 1 END) AS failed_delivery
+    FROM 
+        orders AS o
+    LEFT JOIN
+        deliveries AS d
+    ON
+        o.order_id = d.order_id
+    GROUP BY 
+        restaurant_id
+)
+
+SELECT 
+    n.failed_delivery, 
+    g.total_orders, 
+    ((n.failed_delivery * 100.0) / g.total_orders) AS failed_delivery_percentage
+FROM 
+    no_ETA AS n
+INNER JOIN
+    grand_total AS g
+ON
+    g.restaurant_id = n.restaurant_id;
+``
 ### 10. Rider Average Delivery Time: 
 -- Determine each rider's average delivery time.
 
